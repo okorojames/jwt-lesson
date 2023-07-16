@@ -1,6 +1,14 @@
 const mongoose = require("mongoose");
 const userSchema = require("../models/user_model");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+
+// generating token for authenticated user
+const generateToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: "30d",
+  });
+};
 
 // create new user
 
@@ -23,7 +31,9 @@ const postUser = async (req, res) => {
       const salt = await bcrypt.genSalt(10);
       user_details.password = await bcrypt.hash(password, salt);
       await user_details.save();
-      return res.status(201).json(user_details);
+      const user_token = generateToken(user_details._id);
+      console.log(user_token);
+      return res.status(201).json({ user_details, user_token });
     }
   } catch (err) {
     console.log(err);
@@ -42,7 +52,8 @@ const loginUser = async (req, res) => {
     if (!users) {
       return res.status(400).json({ msg: "lgin credential not valid" });
     } else if (users && (await bcrypt.compare(password, users.password))) {
-      return res.status(200).json(users);
+      const user_token = generateToken(users._id);
+      return res.status(200).json({ users, user_token });
     } else {
       return res.status(400).json({ msg: "login credntials not valid" });
     }
