@@ -17,7 +17,7 @@ const protected_route = async (req, res, next) => {
       const decoded_token = jwt.verify(token, process.env.JWT_SECRET);
 
       // get user from the token
-      req.james = await userSchema
+      req.user = await userSchema
         .findById(decoded_token.id)
         .select("-password");
 
